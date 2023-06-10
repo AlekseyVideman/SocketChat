@@ -1,5 +1,5 @@
 # SocketChat
-An eductional project for learning how the bytes reading and sockets work.
+An eductional project for learning how the bytes reading and sockets works.
 
 ## How to test it?
 1. Compile a server jar from sources placed in the src folder at the root.
