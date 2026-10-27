@@ -1,12 +1,9 @@
-package com.github.alekseyvideman;
+package alekseyvideman.socket_chat.server;
 
-import com.github.alekseyvideman.client.ClientHandler;
-
-import java.io.*;
+import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.logging.Logger;
 
-public final class Server {
+public final class ConnectionHandler {
     private static ServerSocket serverSocket;
 
     public static boolean isClosed() {
@@ -16,19 +13,19 @@ public final class Server {
     public static void run() {
         try {
             serverSocket = new ServerSocket(25565);
-            Main.log.info("Сервер запустился на порту 25565");
+            System.out.println("Сервер запустился на порту 25565");
         } catch (IOException e) {
             // ...
         }
 
         /*
-        * CONNECTING THREAD
-        */
-        Main.sharedThreadPool.execute(() -> {
+         * CONNECTING THREAD
+         */
+        Server.sharedThreadPool.execute(() -> {
             try {
                 while (!(serverSocket.isClosed())) {
                     ClientHandler.getInstance().handleClient(serverSocket.accept());
-                    Main.log.info("Присоединился ещё один участник");
+                    Server.log.info("Присоединился ещё один участник");
                 }
             } catch (IOException e) {
                 // ...
@@ -39,7 +36,7 @@ public final class Server {
     public static void close() {
         try {
             serverSocket.close();
-            Main.log.info("Сервер выключен.");
+            Server.log.info("Сервер выключен.");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NullPointerException e) {

@@ -1,21 +1,22 @@
-package com.github.alekseyvideman.client;
+package alekseyvideman.socket_chat.server;
 
-import com.github.alekseyvideman.Main;
-import com.github.alekseyvideman.Server;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class ClientHandler {
     private static ClientHandler clientHandler;
 
     private final List<Socket> clientsList = Collections.synchronizedList(new ArrayList<>());
-    private final LinkedBlockingQueue<Message> messagesQueue = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<Map<String, String>> messagesQueue = new LinkedBlockingQueue<>();
 
     public ClientHandler() {
         startConnectionsHandling();
@@ -35,10 +36,10 @@ public final class ClientHandler {
 
     private void startConnectionsHandling() {
         /*
-        * RECEIVING THREAD (поток получает сообщения)
-        */
-        Main.sharedThreadPool.execute(() -> {
-            while (!(Server.isClosed())) {
+         * RECEIVING THREAD (поток получает сообщения)
+         */
+        Server.sharedThreadPool.execute(() -> {
+            while (!(ConnectionHandler.isClosed())) {
                 for (int i = 0; i < clientsList.size(); i++) {
                     Socket currClient = clientsList.get(i);
 
@@ -66,7 +67,7 @@ public final class ClientHandler {
                         String clientNick = clientMsg.substring(0, nickMsgSeparator);
                         String msg = clientMsg.substring(nickMsgSeparator + 1);
 
-                        handleMessage(new Message(clientNick, msg));
+                        handleMessage(Map.of("senderName", clientNick, "text", msg));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -76,19 +77,18 @@ public final class ClientHandler {
     }
 
 
-
-    private void handleMessage(Message msg) {
+    private void handleMessage(Map<String, String> msg) {
         messagesQueue.add(msg);
-        Main.log.info("[Сообщения] " + msg.toString());
+        Server.log.info("[Сообщения] " + msg.toString());
     }
 
     private void startMessageSending() {
         /*
          * SENDING THREAD (поток отправляет сообщения)
          */
-        Main.sharedThreadPool.execute(() -> {
-            while (!(Server.isClosed())) {
-                Message currMsg = null;
+        Server.sharedThreadPool.execute(() -> {
+            while (!(ConnectionHandler.isClosed())) {
+                Map<String, String> currMsg = null;
 
                 try {
                     currMsg = messagesQueue.take();

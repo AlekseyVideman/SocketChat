@@ -1,4 +1,4 @@
-package com.github.alekseyvideman;
+package alekseyvideman.socket_chat.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,15 +8,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-public class Main {
-    private boolean run = true;
-
+public class Server {
     public static final ExecutorService sharedThreadPool = Executors.newFixedThreadPool(3);
     public static Logger log = createFormattedLogger("Сервер");
+    private boolean run = true;
 
     public static void main(String[] args) {
-        Main main = new Main();
-        main.startInputReceiving();
+        final var server = new Server();
+        server.startInputReceiving();
     }
 
     private static Logger createFormattedLogger(String name) {
@@ -30,9 +29,9 @@ public class Main {
                 System.in, StandardCharsets.UTF_8));
 
         System.out.println("""
-                     
+                
                      -= Вас приветствует программа SocketChat =-
-                      
+                
                 Что требуется сделать? Выберите один из пунктов ниже:
                   1. Запустить сервер сообщений.
                   2. Остановить сервер сообщений и выйти.
@@ -53,11 +52,11 @@ public class Main {
 
                 switch (answerInt) {
                     case 1:
-                        Server.run();
+                        ConnectionHandler.run();
                         break;
                     case 2:
                         consoleInput.close();
-                        Server.close();
+                        ConnectionHandler.close();
                         sharedThreadPool.shutdownNow();
                         run = false;
                         break;
@@ -71,3 +70,4 @@ public class Main {
     }
 
 }
+

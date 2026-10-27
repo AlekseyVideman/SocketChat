@@ -1,6 +1,9 @@
-package com.github.alekseyvideman;
+package alekseyvideman.socket_chat.client;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -8,16 +11,15 @@ import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
-public class FrontendClient {
+public class Client {
     private final Socket socket = new Socket();
-	private volatile boolean active = true;
-    private String nickname;
+    private volatile boolean active = true;
     private final Thread messagesFetcher = new Thread(() -> {
         while (active) {
             try {
-				if (socket.getInputStream().available() == 0) {
-					Thread.yield();
-				}
+                if (socket.getInputStream().available() == 0) {
+                    Thread.yield();
+                }
 
                 BufferedReader fromServer = new BufferedReader(new InputStreamReader(
                         socket.getInputStream(), StandardCharsets.UTF_8));
@@ -33,15 +35,15 @@ public class FrontendClient {
             }
         }
     });
-
-    public static void main(String[] args) {
-        FrontendClient it = new FrontendClient();
+    static void main() {
+        var it = new Client();
         it.setupNickname();
         it.tryConnect();
         it.messagesFetcher.start();
         it.startMessageSending();
     }
 
+    private String nickname;
     public void startMessageSending() {
         try (PrintWriter toServer = new PrintWriter(socket.getOutputStream(), true,
                 StandardCharsets.UTF_8);
@@ -83,7 +85,7 @@ public class FrontendClient {
         }
         System.out.println("Отключено.");
     }
-    
+
     private void setupNickname() {
         System.out.print("Укажите Ваш псевдоним: ");
 
@@ -91,13 +93,15 @@ public class FrontendClient {
                 StandardCharsets.UTF_8));
         try {
             String nick = consoleInput.readLine();
-            if (!nick.isEmpty()) {
-                nickname = nick;
-            } else if (nick.length() > 20) {
+
+            if (nick.length() > 20) {
                 System.out.printf("Длина ника слишком длинная! (%d/20)", nick.length());
+            } else if (!nick.isEmpty()) {
+                nickname = nick;
             } else {
                 nickname = "Аноним" + new Random().nextInt(0, 10);
             }
+
         } catch (IOException e) {
             //...
         }
@@ -110,5 +114,5 @@ public class FrontendClient {
             e.printStackTrace();
         }
     }
-    
+
 }

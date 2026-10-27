@@ -1,6 +1,16 @@
+.gradle
+build/
+.env
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+**/bin/
+
+### IntelliJ IDEA ###
 .idea/
-artifacts/
-out/
-*.bat
+*.iws
 *.iml
-*.jar
+*.ipr
+
+.vscode
+.gigacode
